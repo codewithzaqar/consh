@@ -4,8 +4,12 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.completion import WordCompleter
 from .Parser import parse_command
 from consh.commands import execute_command, get_available_commands
+from consh.config import load_config
 
 def run_cli():
+    # Load configuration (e.g., aliases)
+    load_config() 
+
     # Initialize prompt with history and tab completion
     history = FileHistory(".consh_history")
     commands = get_available_commands()
@@ -17,7 +21,7 @@ def run_cli():
         complete_while_typing=True
     )
 
-    print("Consh v0.02 - Type 'exit' to quit")
+    print("Consh v0.03 - Type 'exit' to quit")
     while True:
         try:
             user_input = session.prompt().strip()
@@ -44,5 +48,5 @@ def main():
     else:
         run_cli()
 
-if __name__ == "__main" or sys.argv[0] == "-c":
+if __name__ == "__main__" or sys.argv[0] == "-c":
     main()

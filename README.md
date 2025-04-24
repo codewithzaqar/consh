@@ -16,9 +16,7 @@ Available commands:
 - `env [key]`: Shows environment variables.
 - `version`: Displays the Consh version.
 - `cd [path]`: Changes the current directory (defaults to home if no path).
+- `alias [name='command']`: Sets or lists aliases (e.g., alias ll='ls -l').
 - `exit`: Quits the CLI.
 - System commands (e.g., `ls`, `pwd`) are supported.
-
-## Development
-- Python 3.6+
-- No external dependencies
+- Python expressions (e.g., `print(1+2)` or `x=5; print(x)`).
