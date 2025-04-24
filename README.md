@@ -14,6 +14,8 @@ consh
 Available commands:
 - `hello [name]`: Prints a greeting.
 - `env [key]`: Shows environment variables.
+- `version`: Displays the Consh version.
+- `cd [path]`: Changes the current directory (defaults to home if no path).
 - `exit`: Quits the CLI.
 - System commands (e.g., `ls`, `pwd`) are supported.
 

@@ -1,12 +1,26 @@
 import sys
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import FileHistory
+from prompt_toolkit.completion import WordCompleter
 from .Parser import parse_command
-from consh.commands import execute_command
+from consh.commands import execute_command, get_available_commands
 
 def run_cli():
-    print("Consh v0.01 - Type 'exit' to quit")
+    # Initialize prompt with history and tab completion
+    history = FileHistory(".consh_history")
+    commands = get_available_commands()
+    completer = WordCompleter(commands, ignore_case=True)
+    session = PromptSession(
+        "consh> ",
+        completer=completer,
+        history=history,
+        complete_while_typing=True
+    )
+
+    print("Consh v0.02 - Type 'exit' to quit")
     while True:
         try:
-            user_input = input("consh> ").strip()
+            user_input = session.prompt().strip()
             if not user_input:
                 continue
             command, args = parse_command(user_input)
@@ -15,6 +29,8 @@ def run_cli():
                 print(result)
         except KeyboardInterrupt:
             print("\nUse 'exit' to quit")
+        except EOFError:
+            break
         except Exception as e:
             print(f"Error: {e}")
 

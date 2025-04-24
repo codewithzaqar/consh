@@ -43,3 +43,6 @@ temp/
 
 # Package installation artifacts
 pip=wheel-metadata/
+
+# Consh-specific
+.consh_history
