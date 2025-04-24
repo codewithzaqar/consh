@@ -1,0 +1,45 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env/
+env/
+*.venv/
+
+# Build and distribution files
+dist/
+build/
+*.egg-info/
+*.egg
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Testing and coverage
+.coverage
+coverage.xml
+*.cover
+.pytest_cache/
+
+# Logs and temporary files
+*.log
+*.tmp
+temp/
+
+# Miscellaneous
+*.bak
+*.swp
+*~
+
+# Package installation artifacts
+pip=wheel-metadata/
