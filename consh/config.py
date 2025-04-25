@@ -12,6 +12,9 @@ def load_config():
         if "aliases" in config:
             for name, value in config["aliases"].items():
                 ALIASES[name] = value
+        if "env" in config:
+            for key, value in config["env"].items():
+                os.environ[key] = value
 
 def get_aliases():
     """Return current aliases."""

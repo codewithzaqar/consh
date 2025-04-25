@@ -1,3 +1,6 @@
 [aliases]
 ll = ls -l
 home = cd ~
+
+[env]
+MY_VAR = my_value

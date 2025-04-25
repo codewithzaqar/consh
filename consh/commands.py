@@ -8,10 +8,65 @@ from . import __version__
 def get_available_commands():
     """Return list of available commands for tab completion."""
     commands = [
-        "exit", "hello", "env", "version", "cd", "alias", "ls", "pwd", "cat",  # Common system commands
+        "exit", "hello", "env", "version", "cd", "alias", "setenv", "help", "ls", "pwd", "cat", "grep"  # Common system commands
     ]
     commands.extend(get_aliases().keys())  # Include aliases
     return commands
+
+def get_command_help():
+    """Return help text for commands."""
+    return {
+        "exit": "Quits the Consh CLI.",
+        "hello": "Prints a greeting. Usage: hello [name]",
+        "env": "Shows environment variables. Usage: env [key]",
+        "version": "Displays the Consh versions.",
+        "cd": "Changes the current directory. Usage: cd [path]",
+        "alias": "Sets or lists aliases. Usage: alias [name='command']",
+        "setenv": "Sets an environment variable. Usage: setenv key=value",
+        "help": "Displays help for commands. Usage: help [commands]"
+    }
+
+def execute_pipeline(pipeline):
+    """Execute a pipeline of commands."""
+    if not pipeline:
+        return None
+    
+    # Single command case
+    if len(pipeline) == 1:
+        command, args = pipeline[0]
+        return execute_command(command, args)
+    
+    # Piping case
+    processes = []
+    for i, (command, args) in enumerate(pipeline):
+        try:
+            stdin = processes[-1].stdout if processes else None
+            process = subprocess.Popen(
+                [command] + args,
+                stdin=stdin,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            processes.append(process)
+        except FileNotFoundError:
+            return f"Command '{command}' not found"
+        
+    # Close intermediate pipes
+    for p in processes[:-1]:
+        p.stdout.close()
+
+    # Get output and errors
+    try:
+        stdout, stderr = processes[-1].communicate()
+        if processes[-1].returncode != 0:
+            return f"Command failed: {stderr.strip() or 'Unknown error'} (exit code: {processes[-1].returncode})"
+        return stdout.strip()
+    except Exception as e:
+        return f"Pipeline error: {e}"
+    finally:
+        for p in processes:
+            p.terminate()
 
 def execute_command(command, args):
     # Check for aliases
@@ -46,6 +101,18 @@ def execute_command(command, args):
         name, value = args[1].split("=", 1)
         set_alias(name, value.strip("'"))
         return f"Alias '{name}' set to '{value}'"
+    elif command == "setenv":
+        if not args or "=" not in args[0]:
+            return "Usage: setenv key=value"
+        key, value = args[0].split("=", 1)
+        os.environ[key] = value
+        return f"Set {key}={value}"
+    elif command == "help":
+        help_texts = get_command_help()
+        if not args:
+            return "\n".join(f"{cmd}: {desc}" for cmd, desc in help_texts.items())
+        cmd = args[0]
+        return help_texts.get(cmd, f"No help available for '{cmd}'")
     
     # Try Python code execution
     try:

@@ -2,8 +2,8 @@ import sys
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.completion import WordCompleter
-from .Parser import parse_command
-from consh.commands import execute_command, get_available_commands
+from .Parser import parse_pipeline
+from consh.commands import execute_pipeline, get_available_commands
 from consh.config import load_config
 
 def run_cli():
@@ -21,14 +21,14 @@ def run_cli():
         complete_while_typing=True
     )
 
-    print("Consh v0.03 - Type 'exit' to quit")
+    print("Consh v0.04 - Type 'exit' to quit")
     while True:
         try:
             user_input = session.prompt().strip()
             if not user_input:
                 continue
-            command, args = parse_command(user_input)
-            result = execute_command(command, args)
+            pipeline = parse_pipeline(user_input)
+            result = execute_pipeline(pipeline)
             if result is not None:
                 print(result)
         except KeyboardInterrupt:
@@ -41,8 +41,8 @@ def run_cli():
 def main():
     if len(sys.argv) > 1:
         # Handle direct command-line arguments (e.g., `consh ls`)
-        command, args = parse_command(" ".join(sys.argv[1:]))
-        result = execute_command(command, args)
+        pipeline = parse_pipeline(" ".join(sys.argv[1:]))
+        result = execute_pipeline(pipeline)
         if result:
             print(result)
     else:
