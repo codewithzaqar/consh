@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions or Support
+    url: https://github.com/codewithzaqar/consh/issues/new?labels=question
+    about: For questions or support, open an issue with the 'question' label.
+  - name: Contact Maintainers
+    url: mailto:consh-maintainers@example.com
+    about: For sensitive matters, contact the maintainers directly.
