@@ -31,6 +31,8 @@ Available commands:
 - `help [command]`: Displays help for commands.
 - `clear`: Clears the terminal screen.
 - `source script.consh`: Executes a .consh script. 
+- `bg command [args]`: Runs a command in the foreground
+- `fg [job_id]`: Brings a background job to the foreground.
 - `exit`: Quits the CLI.
 - System commands (e.g., Initialized empty Git repository in /home/user/consh/.git/is, pwd) with piping (e.g., ls | grep txt) and redirection (e.g., is > output.txt).
 - Python expressions (e.g., `print(1+2)` or `x=5; print(x)`).
