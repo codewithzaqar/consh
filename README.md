@@ -1,5 +1,11 @@
 # Consh
-A simple Python-based CLI insoired by xonsh
+Consh is a Python-based command-line interface (CLI) inspired by xonsh, blending traditional shell functionality with Python scripting. It offers features like piping, redirections, job control, customizable prompts, and script execution for a powerful and flexible user experience
+
+## Code of Conduct
+We are committed to fostering a welcoming and inclusive community. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) to understand the expctations for participation in the Consh project.
+
+## Contributing
+We welcome contributions to Consh! To get started, please read our [Contributing Guidelines](CONTRIBUTING.md) for details on submitting issues, proposing features, and creating pull requests.
 
 ## Installation
 ```bash
