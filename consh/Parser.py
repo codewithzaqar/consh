@@ -1,25 +1,48 @@
 def parse_pipeline(input_string):
-    """Parse input string into a list of (command, args) tuples for piping."""
-    # Split by pipe symbol, handling redirection
-    parts = input_string.split(">")
-    if len(parts) > 2:
-        return [("error", ["Multiple redirection operators not supported"])]
-
-    pipeline_str = parts[0].strip()
-    redirect = parts[1].strip() if len(parts) == 2 else None
-
-    # Split pipeline by pipe symbol
-    commands = [cmd.strip() for cmd in pipeline_str.split("|") if cmd.strip()]
+    """Parse input string into a list of (command, args) tuples for piping and redirection."""
+    # Split by redirection operators
+    parts = []
+    current = ""
+    i = 0
+    while i < len(input_string):
+        if input_string[i:i+2] == ">>":
+            if current.strip():
+                parts.append(current.strip())
+            parts.append(">>")
+            current = ""
+            i += 2
+        elif input_string[i] == ">":
+            if current.strip():
+                parts.append(current.strip())
+            parts.append(">")
+            current = ""
+            i += 1
+        elif input_string[i] == "|":
+            if current.strip():
+                parts.append(current.strip())
+            current = ""
+            i += 1
+        else:
+            current += input_string[i]
+            i += 1
+    if current.strip():
+        parts.append(current.strip())
+    
     pipeline = []
-
-    for cmd in commands:
-        parts = cmd.split()
-        if not parts:
-            continue
-        pipeline.append((parts[0], parts[1:]))
-
-    # Add redirection as a pseudo-command
-    if redirect:
-        pipeline.append((">", [redirect]))
-
+    i = 0
+    while i < len(parts):
+        if parts[i] in (">", ">>"):
+            if i + 1 < len(parts):
+                pipeline.append((parts[i], [parts[i + 1]]))
+                i += 2
+            else:
+                pipeline.append(("error", ["Missing redirection target"]))
+                break
+        else:
+            # Split command by spaces
+            cmd_parts = parts[i].split()
+            if cmd_parts:
+                pipeline.append((cmd_parts[0], cmd_parts[1:]))
+            i += 1
+    
     return pipeline

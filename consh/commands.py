@@ -2,15 +2,21 @@ import subprocess
 import os
 import ast
 import shutil
-from consh.utils import get_env_var
-from consh.config import get_aliases, set_alias
-from consh.Parser import parse_pipeline
+import time
+from .utils import get_env_var, log_command
+from .config import get_aliases, set_alias
+from .Parser import parse_pipeline
 from . import __version__
+
+# Store background processes
+BACKGROUND_JOBS = []
 
 def get_available_commands():
     """Return list of available commands for tab completion."""
     commands = [
-        "exit", "hello", "env", "version", "cd", "alias", "setenv", "help", "clear", "source", "ls", "pwd", "cat", "grep"  # Common system commands
+        "exit", "hello", "env", "version", "cd", "alias", "setenv", "help",
+        "clear", "source", "bg", "fg",
+        "ls", "pwd", "cat", "grep",  # Common system commands
     ]
     commands.extend(get_aliases().keys())  # Include aliases
     return commands
@@ -21,35 +27,52 @@ def get_command_help():
         "exit": "Quits the Consh CLI.",
         "hello": "Prints a greeting. Usage: hello [name]",
         "env": "Shows environment variables. Usage: env [key]",
-        "version": "Displays the Consh versions.",
+        "version": "Displays the Consh version.",
         "cd": "Changes the current directory. Usage: cd [path]",
         "alias": "Sets or lists aliases. Usage: alias [name='command']",
         "setenv": "Sets an environment variable. Usage: setenv key=value",
-        "help": "Displays help for commands. Usage: help [commands]",
+        "help": "Displays help for commands. Usage: help [command]",
         "clear": "Clears the terminal screen.",
-        "source": "Executes a .consh script. Usage: source script.consh"
+        "source": "Executes a .consh script. Usage: source script.consh",
+        "bg": "Runs a command in the background. Usage: bg command [args]",
+        "fg": "Brings a background job to the foreground. Usage: fg [job_id]"
     }
 
-def execute_pipeline(pipeline):
-    """Execute a pipeline of commands with optional redirection."""
+def terminate_background_jobs():
+    """Terminate all background jobs."""
+    global BACKGROUND_JOBS
+    for job in BACKGROUND_JOBS:
+        try:
+            job.terminate()
+            job.wait(timeout=1)
+        except:
+            pass
+    BACKGROUND_JOBS = []
+
+def execute_pipeline(pipeline, background=False):
+    """Execute a pipeline of commands with optional redirection and background execution."""
+    global BACKGROUND_JOBS
     if not pipeline:
         return None
     
     # Handle redirection
     output_file = None
-    if pipeline and pipeline[-1][0] == ">":
+    append_mode = False
+    if pipeline and pipeline[-1][0] in (">", ">>"):
         if len(pipeline[-1][1]) != 1:
-            return "Usage: command > filename"
+            return "Usage: command > filename or command >> filename"
         output_file = pipeline[-1][1][0]
+        append_mode = pipeline[-1][0] == ">>"
         pipeline = pipeline[:-1]
     
     # Single command case
     if len(pipeline) == 1:
         command, args = pipeline[0]
-        result = execute_command(command, args)
-        if output_file and result is not None:
+        result = execute_command(command, args, background=background)
+        if output_file and result is not None and not background:
             try:
-                with open(output_file, "w") as f:
+                mode = "a" if append_mode else "w"
+                with open(output_file, mode) as f:
                     f.write(str(result))
                 return None
             except Exception as e:
@@ -61,7 +84,8 @@ def execute_pipeline(pipeline):
     for i, (command, args) in enumerate(pipeline):
         try:
             stdin = processes[-1].stdout if processes else None
-            stdout = subprocess.PIPE if i < len(pipeline) - 1 else (open(output_file, "w") if output_file else None)
+            stdout = (subprocess.PIPE if i < len(pipeline) - 1 else
+                     open(output_file, "a" if append_mode else "w") if output_file else None)
             process = subprocess.Popen(
                 [command] + args,
                 stdin=stdin,
@@ -70,13 +94,19 @@ def execute_pipeline(pipeline):
                 text=True
             )
             processes.append(process)
+            if background:
+                BACKGROUND_JOBS.append(process)
         except FileNotFoundError:
             return f"Command '{command}' not found"
         
+    # Handle background execution
+    if background:
+        return f"Started background job {len(BACKGROUND_JOBS)}"
+    
     # Close intermediate pipes
     for p in processes[:-1]:
         p.stdout.close()
-
+    
     # Get output and errors
     try:
         stdout, stderr = processes[-1].communicate()
@@ -91,14 +121,15 @@ def execute_pipeline(pipeline):
         if output_file and processes[-1].stdout:
             processes[-1].stdout.close()
 
-def execute_command(command, args):
+def execute_command(command, args, background=False):
     # Check for aliases
     aliases = get_aliases()
     if command in aliases:
         command, args = parse_alias_command(aliases[command], args)
-
+    
     # Custom commands
     if command == "exit":
+        terminate_background_jobs()
         exit(0)
     elif command == "hello":
         return f"Hello, {args[0] if args else 'User'}!"
@@ -152,6 +183,7 @@ def execute_command(command, args):
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith("#"):
+                        log_command(line)
                         pipeline = parse_pipeline(line)
                         result = execute_pipeline(pipeline)
                         if result:
@@ -159,6 +191,25 @@ def execute_command(command, args):
             return None
         except Exception as e:
             return f"Script execution error: {e}"
+    elif command == "bg":
+        if not args:
+            return "Usage: bg command [args]"
+        pipeline = parse_pipeline(" ".join(args))
+        return execute_pipeline(pipeline, background=True)
+    elif command == "fg":
+        if not BACKGROUND_JOBS:
+            return "No background jobs"
+        job_id = int(args[0]) - 1 if args and args[0].isdigit() else len(BACKGROUND_JOBS) - 1
+        if job_id < 0 or job_id >= len(BACKGROUND_JOBS):
+            return f"Invalid job ID: {job_id + 1}"
+        job = BACKGROUND_JOBS.pop(job_id)
+        try:
+            stdout, stderr = job.communicate()
+            if job.returncode != 0:
+                return f"Job failed: {stderr.strip() or 'Unknown error'} (exit code: {job.returncode})"
+            return stdout.strip() if stdout else None
+        except Exception as e:
+            return f"Foreground job error: {e}"
     
     # Try Python code execution
     try:
@@ -166,9 +217,9 @@ def execute_command(command, args):
         if result is not None:
             return str(result)
     except (SyntaxError, ValueError, NameError):
-        pass
+        pass  # Fall back to system command if Python execution fails
     
-    # System commands
+    # System commands (handled by pipeline for piping/redirection)
     try:
         result = subprocess.run(
             [command] + args,
@@ -183,7 +234,7 @@ def execute_command(command, args):
         return f"Command '{command}' not found"
     except Exception as e:
         return f"System command error: {e}"
-    
+
 def parse_alias_command(alias_value, args):
     """Parse alias value and combine with args."""
     parts = alias_value.strip().split()

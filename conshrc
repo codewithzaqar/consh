@@ -4,3 +4,6 @@ home = cd ~
 
 [env]
 MY_VAR = my_value
+
+[prompt]
+PS1 = [~/consh]$
