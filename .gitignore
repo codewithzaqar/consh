@@ -48,3 +48,4 @@ pip=wheel-metadata/
 .consh_history
 *.consh
 !conshrc
+!CODE_OF_CONDUCT.md
