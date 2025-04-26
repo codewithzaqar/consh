@@ -7,6 +7,9 @@ We are committed to fostering a welcoming and inclusive community. Please read o
 ## Contributing
 We welcome contributions to Consh! To get started, please read our [Contributing Guidelines](CONTRIBUTING.md) for details on submitting issues, proposing features, and creating pull requests.
 
+## Reporting Issues
+Found a bug or have a feature idea? Please use our [GitHub Issues](https://github.com/codewithzaqar/consh/issues) page and select the appropriate issue template (Bug Report or Feature Request) to provide detailed information. See the [Contributing Guidelines](CONTRIBUTING.md) for more details.
+
 ## Installation
 ```bash
 pip install .
