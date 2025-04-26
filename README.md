@@ -10,6 +10,9 @@ We welcome contributions to Consh! To get started, please read our [Contributing
 ## Reporting Issues
 Found a bug or have a feature idea? Please use our [GitHub Issues](https://github.com/codewithzaqar/consh/issues) page and select the appropriate issue template (Bug Report or Feature Request) to provide detailed information. See the [Contributing Guidelines](CONTRIBUTING.md) for more details.
 
+## Changelog
+See the [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes and releases.
+
 ## Installation
 ```bash
 pip install .

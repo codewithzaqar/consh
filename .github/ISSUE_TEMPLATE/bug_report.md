@@ -24,7 +24,7 @@ What actually happened, including error messages or screenshots (if applicable).
 ## Environment
 - **OS**: [e.g., Ubuntu 20.04, Windows 11]
 - **Python Version**: [e.g., Python 3.8]
-- **Consh Version**: [e.g., v0.06]
+- **Consh Version**: [e.g., v0.07]
 - **Installation Method**: [e.g., pip install -e .]
 
 ## Additional Context

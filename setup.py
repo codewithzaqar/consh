@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="consh",
-    version="0.06",
+    version="0.07",
     packages=find_packages(),
     install_requires=["prompt_toolkit>=3.0.0"],
     entry_points={
